@@ -69,7 +69,7 @@ object AvroTypeMatcher {
       }
       case Schema.Type.BYTES    => sys.error("BYTES is not yet supported")
       case Schema.Type.FIXED    => sys.error("FIXED is not yet supported")
-      case Schema.Type.ENUM     => sys.error("ENUM is not yet supported")
+      case Schema.Type.ENUM     => typeOf[String] // sys.error("ENUM is not yet supported")
     }
   }
 }

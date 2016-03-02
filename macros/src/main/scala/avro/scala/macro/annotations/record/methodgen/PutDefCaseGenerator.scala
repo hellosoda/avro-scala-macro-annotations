@@ -23,6 +23,7 @@ abstract class PutDefCaseGenerator {
             fieldType match {
               case s @ TypeRef(pre, symbol, args) if (s =:= typeOf[String]) => {
                 q"""$tree match {
+                  case x: org.apache.avro.generic.GenericData.EnumSymbol => $tree.toString
                   case x: org.apache.avro.util.Utf8 => $tree.toString
                   case _ => $tree
                 } """

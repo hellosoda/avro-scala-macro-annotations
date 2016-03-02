@@ -15,15 +15,15 @@ import org.specs2.mutable.Specification
 
 object TestUtil extends Specification {
 
-  def write[T <: SpecificRecordBase](file: File, records: List[T]) = {
+  def write[T](file: File, records: List[T])(schema: Schema) = {
     val userDatumWriter = new SpecificDatumWriter[T]
     val dataFileWriter = new DataFileWriter[T](userDatumWriter)
-    dataFileWriter.create(records.head.getSchema, file);
+    dataFileWriter.create(schema, file);
     records.foreach(record => dataFileWriter.append(record))
     dataFileWriter.close();
   }
 
-  def read[T <: SpecificRecordBase](file: File, records: List[T]) = {
+  def read[T](file: File, records: List[T]) = {
     val dummyRecord = new GenericDatumReader[GenericRecord]
     val schema = new DataFileReader(file, dummyRecord).getSchema
     val userDatumReader = new SpecificDatumReader[T](schema)
@@ -43,15 +43,19 @@ object TestUtil extends Specification {
   }
 
   def verifyWriteAndRead[T <: SpecificRecordBase](records: List[T]) = {
+    verifyWriteAndReadWith(records.head.getSchema)(records)
+  }
+
+  def verifyWriteAndReadWith[T](schema: Schema)(records: List[T]) = {
     val fileName = s"${records.head.getClass.getName}"
     val fileEnding = "avro"
     val file = File.createTempFile(fileName, fileEnding)
     file.deleteOnExit()
-    write(file, records)
+    write(file, records)(schema)
     read(file, records)
   }
 
-  def verifyRead[T <: SpecificRecordBase](record: T) = {
+  def verifyRead[T](record: T) = {
     val className = record.getClass.getName.split('.').last
     val fileName = s"tests/src/test/resources/${className}.avro"
     val file = new File(fileName)

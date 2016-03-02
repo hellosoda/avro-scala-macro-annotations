@@ -27,6 +27,7 @@ object FromJsonMatcher {
         case Schema.Type.DOUBLE  => q"${node.getDoubleValue}"
         case Schema.Type.BOOLEAN => q"${node.getBooleanValue}"
         case Schema.Type.STRING  => q"${node.getTextValue}"
+        case Schema.Type.ENUM    => q"${node.getTextValue}"
         case Schema.Type.NULL    => q"null"
         case Schema.Type.UNION   => {
           val unionSchemas = schema.getTypes.toList

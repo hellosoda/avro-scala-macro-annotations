@@ -1,0 +1,50 @@
+[
+{
+  "type":"record",
+  "name":"AvroTypeProviderTestEnum1",
+  "namespace":"com.miguno.avro",
+  "fields": [
+    {
+      "name":"suit",
+      "type": {
+        "type": "enum",
+        "name": "Suit",
+        "symbols" : ["SPADES", "HEARTS", "DIAMONDS", "CLUBS"]
+      }
+    }
+  ]
+},
+{
+  "type":"record",
+  "name":"AvroTypeProviderTestEnum2",
+  "namespace":"com.miguno.avro",
+  "doc": "Record with an optional enum field.",
+  "fields": [
+    {
+      "name":"estimate",
+      "type": ["null", {
+        "type": "enum",
+        "name": "Estimate",
+        "symbols" : ["SMALL", "MEDIUM", "LARGE"]
+      }]
+    }
+  ]
+},
+{
+  "type":"record",
+  "name":"AvroTypeProviderTestEnum3",
+  "namespace":"com.miguno.avro",
+  "doc": "Record with enum field which has a default value.",
+  "fields": [
+    {
+      "name":"status",
+      "type": {
+        "type": "enum",
+        "name": "Status",
+        "symbols" : ["ACTIVE", "COMPLETED"]
+      },
+      "default": "ACTIVE"
+    }
+  ]
+}
+]
