@@ -4,7 +4,7 @@ import Keys._
 object BuildSettings {
   val buildSettings = Defaults.defaultSettings ++ Seq(
     organization := "com.julianpeeters",
-    version := "0.10.5",
+    version := "0.10.6-M1",
     scalaVersion := "2.11.7",
     crossScalaVersions := Seq("2.11.6", "2.11.7"),
     scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature", "-Ywarn-value-discard"),
@@ -24,13 +24,15 @@ object BuildSettings {
     // publishing
     publishMavenStyle := true,
     publishArtifact in Test := false,
-    publishTo <<= version { (v: String) =>
+    /*publishTo <<= version { (v: String) =>
       val nexus = "https://oss.sonatype.org/"
       if (v.trim.endsWith("SNAPSHOT"))
         Some("snapshots" at nexus + "content/repositories/snapshots")
       else
         Some("releases" at nexus + "service/local/staging/deploy/maven2")
-    },
+    }*/
+    publishTo := Some("HelloSoda Maven Repository" at
+                      "s3://maven.hellosoda.com/releases"),
     pomIncludeRepository := { _ => false },
     licenses := Seq("Apache 2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
     homepage := Some(url("https://github.com/julianpeeters/avro-scala-macro-annotations")),
