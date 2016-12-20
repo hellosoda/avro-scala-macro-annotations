@@ -8,7 +8,7 @@ import schemagen._
 
 import scala.reflect.macros.blackbox.Context
 import scala.language.experimental.macros
-import scala.annotation.StaticAnnotation
+import scala.annotation.{ compileTimeOnly, StaticAnnotation }
 
 import org.apache.avro.Schema
 import org.apache.avro.Schema.Field
@@ -51,13 +51,13 @@ object AvroRecordMacro {
 
       val getDefCaseGenerator = new { val context: c.type = c } with GetDefCaseGenerator
       val getCases = indexedFields.map(f => getDefCaseGenerator.asGetCase(f.nme, f.tpe, f.idx)) :+ exceptionCase
-      val getDef = q"""def get(field: Int): AnyRef = field match {case ..$getCases}"""
+      val getDef = q"""def get(field$$: Int): AnyRef = field$$ match {case ..$getCases}"""
 
       val getSchemaDef = q""" def getSchema: Schema = ${name.toTermName}.SCHEMA$$ """
 
       val putDefCaseGenerator = new { val context: c.type = c } with PutDefCaseGenerator
       val putCases = indexedFields.map(f => putDefCaseGenerator.asPutCase(f.nme, f.tpe, f.idx)) :+ exceptionCase
-      val putDef = q"""def put(field: Int, value: scala.Any): Unit = { field match {case ..$putCases}; () }"""
+      val putDef = q"""def put(field$$: Int, value: scala.Any): Unit = { field$$ match {case ..$putCases}; () }"""
 
       List(getDef, getSchemaDef, putDef)
     }
@@ -92,14 +92,15 @@ object AvroRecordMacro {
 
           // updates to the companion object
           val schema     = q"${generateSchema(className.toString, generateNamespace, indexedFields).toString}"
-          val newVal     = q"lazy val SCHEMA$$ = new org.apache.avro.Schema.Parser().parse($schema)"
+          val schemaVal  = q"lazy val SCHEMA$$ = new org.apache.avro.Schema.Parser().parse($schema)"
+
           val companionDef = tail match {
             // if there is no preexisiting companion then make one with a SCHEMA$ field
-            case Nil => q"object ${className.toTermName} {$newVal}"
+            case Nil => q"object ${className.toTermName} {$schemaVal}"
             // if there is a preexisting companion, add a SCHEMA$ field
-            case moduleDef @ q"object $moduleName { ..$moduleBody }" :: Nil => {
-              val newModuleBody = moduleBody ::: List(newVal)
-              q"object ${className.toTermName} { ..$newModuleBody }"
+            case List( moduleDef @ q"object $moduleName extends ..$companionParents { ..$moduleBody }") => {
+              val newModuleBody = List(schemaVal) ::: moduleBody
+              q"object ${className.toTermName} extends ..$companionParents { ..$newModuleBody }"
             }
           }
 
@@ -113,6 +114,17 @@ object AvroRecordMacro {
   }
 }
 
+/**
+ * From the Macro Paradise Docs...
+ *
+ * note the @compileTimeOnly annotation. It is not mandatory, but is recommended to avoid confusion.
+ * Macro annotations look like normal annotations to the vanilla Scala compiler, so if you forget
+ * to enable the macro paradise plugin in your build, your annotations will silently fail to expand.
+ * The @compileTimeOnly annotation makes sure that no reference to the underlying definition is
+ * present in the program code after typer, so it will prevent the aforementioned situation
+ * from happening.
+ */
+@compileTimeOnly("Enable Macro Paradise for Expansion of Annotations via Macros.")
 class AvroRecord extends StaticAnnotation {
   def macroTransform(annottees: Any*): Any = macro AvroRecordMacro.impl
 }
